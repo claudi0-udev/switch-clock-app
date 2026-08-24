@@ -7,6 +7,10 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+env:
+  DEVKITPRO: /opt/devkitpro
+  PATH: /opt/devkitpro/pacman/bin:/opt/devkitpro/devkitA64/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,14 +22,10 @@ jobs:
 
       - name: Install libnx and switch-tools
         run: |
-          export PATH="/opt/devkitpro/pacman/bin:/opt/devkitpro/devkitA64/bin:$PATH"
-          export DEVKITPRO=/opt/devkitpro
           dkp-pacman -Sy --noconfirm switch-dev switch-tools
 
       - name: Build Homebrew NRO
         run: |
-          export PATH="/opt/devkitpro/pacman/bin:/opt/devkitpro/devkitA64/bin:$PATH"
-          export DEVKITPRO=/opt/devkitpro
           make
 
       - name: Upload NRO Artifact

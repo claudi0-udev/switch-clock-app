@@ -1,20 +1,19 @@
 #---------------------------------------------------------------------------------
 # Makefile para Nintendo Switch Homebrew (libnx)
 #---------------------------------------------------------------------------------
-ifeq ($(strip $(DEVKITPRO)),)
-$(error "Por favor configura DEVKITPRO en tu entorno. Exporta DEVKITPRO=<path a devkitpro>")
-endif
+export DEVKITPRO ?= /opt/devkitpro
+export LIBNX     ?= $(DEVKITPRO)/libnx
 
 TOPDIR ?= $(CURDIR)
 
-include $(DEVKITPRO)/libnx/switch_rules
+-include $(LIBNX)/switch_rules
 
 # Metadatos de la Aplicacion
 TARGET      := SwitchClock
 BUILD       := build
 SOURCES     := src
 DATA        := data
-INCLUDES    := include
+INCLUDES    := include $(LIBNX)/include
 EXEFS_SRC   := exefs_src
 
 APP_TITLE   := Switch Clock Suite
@@ -33,9 +32,8 @@ ASFLAGS     := -g $(ARCH)
 
 LDFLAGS     = -specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(ver_dir)/$(TARGET).map
 
-# Directorios de librerias e includes (EXPORTADOS para sub-make)
-export LIBDIRS     := $(PORTLIBS) $(LIBNX)
-export LIBS        := -lnx
+LIBDIRS     := $(PORTLIBS) $(LIBNX)
+LIBS        := -lnx
 
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 
