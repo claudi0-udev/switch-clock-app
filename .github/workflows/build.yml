@@ -20,10 +20,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install libnx and switch-tools
-        run: |
-          dkp-pacman -S --noconfirm switch-dev switch-tools
-
       - name: Build Homebrew NRO
         run: |
           make
