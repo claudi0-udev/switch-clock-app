@@ -30,9 +30,7 @@ APP_VERSION := 1.0.0
 ARCH        := -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 
 CFLAGS      := -g -Wall -O2 -ffunction-sections $(ARCH) $(DEFINES)
-
 CXXFLAGS    := $(CFLAGS) -fno-rtti -fno-exceptions
-
 ASFLAGS     := -g $(ARCH)
 
 LDFLAGS     = -specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(ver_dir)/$(TARGET).map
@@ -58,6 +56,10 @@ export INCLUDE  := $(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
                    -I$(CURDIR)/$(BUILD)
 
 export LIBPATHS := $(foreach dir,$(LIBDIRS),-L$(dir)/lib)
+
+# Agregar banderas de include a CFLAGS y CXXFLAGS para la compilacion de objetos
+CFLAGS   += $(INCLUDE)
+CXXFLAGS += $(INCLUDE)
 
 .PHONY: all clean
 
