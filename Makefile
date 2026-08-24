@@ -7,7 +7,7 @@ endif
 
 TOPDIR ?= $(CURDIR)
 
-export DEVKITPRO
+export DEVKITPRO ?= /opt/devkitpro
 export LIBNX     := $(DEVKITPRO)/libnx
 export PORTLIBS  := $(DEVKITPRO)/portlibs/switch
 export LIBDIRS   := $(PORTLIBS) $(LIBNX)
@@ -29,15 +29,13 @@ APP_VERSION := 1.0.0
 # Banderas de compilacion
 ARCH        := -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 
-CFLAGS      := -g -Wall -O2 -ffunction-sections $(ARCH) $(DEFINES)
-CXXFLAGS    := $(CFLAGS) -fno-rtti -fno-exceptions
-ASFLAGS     := -g $(ARCH)
+export CFLAGS   := -g -Wall -O2 -ffunction-sections $(ARCH) $(DEFINES)
+export CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions
+export ASFLAGS  := -g $(ARCH)
 
 LDFLAGS     = -specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(ver_dir)/$(TARGET).map
 
 LIBS        := -lnx
-
-ifneq ($(BUILD),$(notdir $(CURDIR)))
 
 export OUTPUT   := $(CURDIR)/$(TARGET)
 export VPATH    := $(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
@@ -57,9 +55,12 @@ export INCLUDE  := $(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 
 export LIBPATHS := $(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
-# Agregar banderas de include a CFLAGS y CXXFLAGS para la compilacion de objetos
-CFLAGS   += $(INCLUDE)
-CXXFLAGS += $(INCLUDE)
+# Exportar CPPFLAGS y CFLAGS con INCLUDE para que los reciba sub-make
+export CPPFLAGS += $(INCLUDE)
+export CFLAGS   += $(INCLUDE)
+export CXXFLAGS += $(INCLUDE)
+
+ifneq ($(BUILD),$(notdir $(CURDIR)))
 
 .PHONY: all clean
 
