@@ -7,7 +7,12 @@ endif
 
 TOPDIR ?= $(CURDIR)
 
-include $(DEVKITPRO)/libnx/switch_rules
+export DEVKITPRO
+export LIBNX     := $(DEVKITPRO)/libnx
+export PORTLIBS  := $(DEVKITPRO)/portlibs/switch
+export LIBDIRS   := $(PORTLIBS) $(LIBNX)
+
+include $(LIBNX)/switch_rules
 
 # Metadatos de la Aplicacion
 TARGET      := SwitchClock
@@ -33,8 +38,6 @@ ASFLAGS     := -g $(ARCH)
 LDFLAGS     = -specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(ver_dir)/$(TARGET).map
 
 LIBS        := -lnx
-
-LIBDIRS     := $(PORTLIBS) $(LIBNX)
 
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 
