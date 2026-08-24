@@ -16,8 +16,6 @@ export CXX       := $(PREFIX)g++
 export LD        := $(PREFIX)gcc
 export LIBDIRS   := $(PORTLIBS) $(LIBNX)
 
-include $(LIBNX)/switch_rules
-
 # Metadatos de la Aplicacion
 TARGET      := SwitchClock
 BUILD       := build
@@ -29,6 +27,11 @@ EXEFS_SRC   := exefs_src
 APP_TITLE   := Switch Clock Suite
 APP_AUTHOR  := Antigravity Homebrew
 APP_VERSION := 1.0.0
+
+export VPATH    := $(foreach dir,$(SOURCES),$(TOPDIR)/$(dir)) \
+                   $(foreach dir,$(DATA),$(TOPDIR)/$(dir))
+
+include $(LIBNX)/switch_rules
 
 # Banderas de compilacion
 ARCH        := -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
@@ -42,8 +45,6 @@ export LDFLAGS  := -specs=$(LIBNX)/switch.specs -g $(ARCH) -Wl,-Map,$(TARGET).ma
 LIBS        := -lnx
 
 export OUTPUT   := $(TOPDIR)/$(TARGET)
-export VPATH    := $(foreach dir,$(SOURCES),$(TOPDIR)/$(dir)) \
-                   $(foreach dir,$(DATA),$(TOPDIR)/$(dir))
 export DEPSDIR  := $(TOPDIR)/$(BUILD)
 
 # Definir CFILES y OFILES usando TOPDIR
