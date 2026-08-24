@@ -8,8 +8,13 @@ endif
 TOPDIR ?= $(CURDIR)
 
 export DEVKITPRO ?= /opt/devkitpro
+export DEVKITA64 := $(DEVKITPRO)/devkitA64
 export LIBNX     := $(DEVKITPRO)/libnx
 export PORTLIBS  := $(DEVKITPRO)/portlibs/switch
+export PREFIX    := aarch64-none-elf-
+export CC        := $(PREFIX)gcc
+export CXX       := $(PREFIX)g++
+export LD        := $(PREFIX)gcc
 export LIBDIRS   := $(PORTLIBS) $(LIBNX)
 
 include $(LIBNX)/switch_rules
@@ -33,7 +38,7 @@ export CFLAGS   := -g -Wall -O2 -ffunction-sections $(ARCH) $(DEFINES)
 export CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions
 export ASFLAGS  := -g $(ARCH)
 
-LDFLAGS     = -specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(ver_dir)/$(TARGET).map
+export LDFLAGS  := -specs=$(LIBNX)/switch.specs -g $(ARCH) -Wl,-Map,$(TARGET).map
 
 LIBS        := -lnx
 
@@ -55,7 +60,6 @@ export INCLUDE  := $(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 
 export LIBPATHS := $(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
-# Exportar CPPFLAGS y CFLAGS con INCLUDE para que los reciba sub-make
 export CPPFLAGS += $(INCLUDE)
 export CFLAGS   += $(INCLUDE)
 export CXXFLAGS += $(INCLUDE)
@@ -83,6 +87,8 @@ all: $(OUTPUT).nro
 $(OUTPUT).nro: $(OUTPUT).elf
 
 $(OUTPUT).elf: $(OFILES)
+	@echo "Enlazando $(notdir $@)..."
+	$(LD) $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
 
 -include $(DEPENDS)
 
