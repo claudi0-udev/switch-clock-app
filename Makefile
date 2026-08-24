@@ -5,8 +5,7 @@ ifeq ($(strip $(DEVKITPRO)),)
 $(error "Por favor configura DEVKITPRO en tu entorno. Exporta DEVKITPRO=<path a devkitpro>")
 endif
 
-TOPDIR ?= $(CURDIR)
-
+export TOPDIR   := $(CURDIR)
 export DEVKITPRO ?= /opt/devkitpro
 export DEVKITA64 := $(DEVKITPRO)/devkitA64
 export LIBNX     := $(DEVKITPRO)/libnx
@@ -42,12 +41,12 @@ export LDFLAGS  := -specs=$(LIBNX)/switch.specs -g $(ARCH) -Wl,-Map,$(TARGET).ma
 
 LIBS        := -lnx
 
-export OUTPUT   := $(CURDIR)/$(TARGET)
-export VPATH    := $(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
-                   $(foreach dir,$(DATA),$(CURDIR)/$(dir))
-export DEPSDIR  := $(CURDIR)/$(BUILD)
+export OUTPUT   := $(TOPDIR)/$(TARGET)
+export VPATH    := $(foreach dir,$(SOURCES),$(TOPDIR)/$(dir)) \
+                   $(foreach dir,$(DATA),$(TOPDIR)/$(dir))
+export DEPSDIR  := $(TOPDIR)/$(BUILD)
 
-# Definir CFILES y OFILES para ambos entornos (top-level y sub-make)
+# Definir CFILES y OFILES usando TOPDIR
 CFILES      := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(TOPDIR)/$(dir)/*.c)))
 CPPFILES    := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(TOPDIR)/$(dir)/*.cpp)))
 SFILES      := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(TOPDIR)/$(dir)/*.s)))
@@ -57,7 +56,7 @@ export OFILES   := $(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
 
 export INCLUDE  := $(foreach dir,$(INCLUDES),-I$(TOPDIR)/$(dir)) \
                    $(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-                   -I$(CURDIR)/$(BUILD)
+                   -I$(TOPDIR)/$(BUILD)
 
 export LIBPATHS := $(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
@@ -73,7 +72,7 @@ all: $(BUILD)
 
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@$(MAKE) --no-print-directory -C $(BUILD) -f $(TOPDIR)/Makefile
 
 clean:
 	@echo "Limpiando archivos compilados..."
