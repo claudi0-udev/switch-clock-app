@@ -10,15 +10,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: devkitpro/devkita64:latest
+    container: devkitpro/devkitswitch:latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Install libnx and switch-tools
-        run: |
-          /opt/devkitpro/pacman/bin/dkp-pacman -Sy --noconfirm switch-dev switch-tools
 
       - name: Build Homebrew NRO
         run: |
