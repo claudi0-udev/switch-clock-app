@@ -20,6 +20,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Build and install libnx from source
+        run: |
+          curl -sL https://github.com/switchbrew/libnx/archive/refs/tags/v4.12.0.tar.gz | tar -xz
+          cd libnx-4.12.0
+          make install
+
       - name: Build Homebrew NRO
         run: |
           make
