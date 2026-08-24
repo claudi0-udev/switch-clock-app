@@ -7,18 +7,22 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+env:
+  DEVKITPRO: /opt/devkitpro
+  PATH: /opt/devkitpro/pacman/bin:/opt/devkitpro/devkitA64/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    container: devkitpro/devkita64:latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup devkitPro
-        uses: devkitPro/setup-devkitpro@v1
-        with:
-          toolchains: switch-dev
+      - name: Install libnx and switch-tools
+        run: |
+          dkp-pacman -S --noconfirm switch-dev switch-tools
 
       - name: Build Homebrew NRO
         run: |
