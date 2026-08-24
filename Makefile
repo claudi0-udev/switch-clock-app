@@ -20,7 +20,6 @@ EXEFS_SRC   := exefs_src
 APP_TITLE   := Switch Clock Suite
 APP_AUTHOR  := Antigravity Homebrew
 APP_VERSION := 1.0.0
-APP_ICON    := $(TOPDIR)/icon.png
 
 # Banderas de compilacion
 ARCH        := -march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
@@ -34,10 +33,9 @@ ASFLAGS     := -g $(ARCH)
 
 LDFLAGS     = -specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(ver_dir)/$(TARGET).map
 
-LIBS        := -lnx
-
-# Directorios de librerias e includes
-LIBDIRS     := $(PORTLIBS) $(LIBNX)
+# Directorios de librerias e includes (EXPORTADOS para sub-make)
+export LIBDIRS     := $(PORTLIBS) $(LIBNX)
+export LIBS        := -lnx
 
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 
@@ -51,8 +49,7 @@ CPPFILES    := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 SFILES      := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 BINFILES    := $(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*)))
 
-export OFILES   := $(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o) \
-                   $(BINFILES_SOURCES:.s=.o)
+export OFILES   := $(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
 
 export INCLUDE  := $(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
                    $(foreach dir,$(LIBDIRS),-I$(dir)/include) \
