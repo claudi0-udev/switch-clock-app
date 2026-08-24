@@ -8,9 +8,14 @@ endif
 TOPDIR ?= $(CURDIR)
 
 export DEVKITPRO ?= /opt/devkitpro
+export DEVKITA64 := $(DEVKITPRO)/devkitA64
 export LIBNX     := $(DEVKITPRO)/libnx
 export PORTLIBS  := $(DEVKITPRO)/portlibs/switch
 export LIBDIRS   := $(PORTLIBS) $(LIBNX)
+export PREFIX    := aarch64-none-elf-
+export CC        := $(PREFIX)gcc
+export CXX       := $(PREFIX)g++
+export LD        := $(PREFIX)gcc
 
 include $(LIBNX)/switch_rules
 
