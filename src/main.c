@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
     consoleInit(NULL);
 
     // Configurar entrada de Joy-Cons / Pro Controller
-    padConfigureInput(1, HID_NPAD_STYLE_SET_FULLKEY);
+    padConfigureInput(1, HidNpadStyleSet_NpadStandard);
     PadState pad;
     padInitializeDefault(&pad);
 
@@ -55,16 +55,16 @@ int main(int argc, char **argv) {
         u64 kDown = padGetButtonsDown(&pad);
 
         // Salir de la aplicación con (+)
-        if (kDown & KEY_PLUS) {
+        if (kDown & HidNpadButton_Plus) {
             break;
         }
 
         // --- Navegación entre Pestañas (L / R o D-Pad Izq / Der) ---
-        if (kDown & (KEY_R | KEY_DRIGHT)) {
+        if (kDown & (HidNpadButton_R | HidNpadButton_Right)) {
             current_tab = (current_tab + 1) % TAB_COUNT;
             clear_screen();
         }
-        if (kDown & (KEY_L | KEY_DLEFT)) {
+        if (kDown & (HidNpadButton_L | HidNpadButton_Left)) {
             current_tab = (current_tab + TAB_COUNT - 1) % TAB_COUNT;
             clear_screen();
         }
@@ -94,20 +94,20 @@ int main(int argc, char **argv) {
         // --- Manejo de Inputs según la pestaña activa ---
         if (current_tab == TAB_STOPWATCH) {
             // A: Iniciar / Pausar
-            if (kDown & KEY_A) {
+            if (kDown & HidNpadButton_A) {
                 sw_running = !sw_running;
                 if (sw_running) {
                     sw_start_ms = now_ms;
                 }
             }
             // X: Reiniciar
-            if (kDown & KEY_X) {
+            if (kDown & HidNpadButton_X) {
                 sw_running = false;
                 sw_accumulated_ms = 0;
             }
         } else if (current_tab == TAB_TIMER) {
             // A: Iniciar / Pausar
-            if (kDown & KEY_A) {
+            if (kDown & HidNpadButton_A) {
                 if (timer_remaining_ms > 0) {
                     timer_running = !timer_running;
                     if (timer_running) {
@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
                 }
             }
             // X: Reiniciar al tiempo configurado
-            if (kDown & KEY_X) {
+            if (kDown & HidNpadButton_X) {
                 timer_running = false;
                 timer_remaining_ms = timer_duration_ms;
                 timer_finished = false;
@@ -125,13 +125,13 @@ int main(int argc, char **argv) {
             // Ajustar tiempo cuando está pausado
             if (!timer_running) {
                 // D-Pad Arriba: +1 Minuto
-                if (kDown & KEY_DUP) {
+                if (kDown & HidNpadButton_Up) {
                     timer_duration_ms += 60 * 1000;
                     timer_remaining_ms = timer_duration_ms;
                     timer_finished = false;
                 }
                 // D-Pad Abajo: -1 Minuto (mínimo 10 segundos)
-                if (kDown & KEY_DDOWN) {
+                if (kDown & HidNpadButton_Down) {
                     if (timer_duration_ms > 60 * 1000) {
                         timer_duration_ms -= 60 * 1000;
                     } else {
@@ -141,7 +141,7 @@ int main(int argc, char **argv) {
                     timer_finished = false;
                 }
                 // Y: +10 Segundos
-                if (kDown & KEY_Y) {
+                if (kDown & HidNpadButton_Y) {
                     timer_duration_ms += 10 * 1000;
                     timer_remaining_ms = timer_duration_ms;
                     timer_finished = false;
@@ -162,106 +162,83 @@ int main(int argc, char **argv) {
         // Barra de Pestañas
         printf("   ");
         if (current_tab == TAB_CLOCK) {
-            printf("\x1b[47m\x1b[30m  [1] RELOJ  \x1b[0m  ");
+            printf("\x1b[47m\x1b[30m [1] RELOJ (RTC) \x1b[0m   ");
         } else {
-            printf("  [1] RELOJ    ");
+            printf(" [1] RELOJ (RTC)    ");
         }
 
         if (current_tab == TAB_STOPWATCH) {
-            printf("\x1b[47m\x1b[30m  [2] CRONOMETRO  \x1b[0m  ");
+            printf("\x1b[47m\x1b[30m [2] CRONOMETRO \x1b[0m   ");
         } else {
-            printf("  [2] CRONOMETRO    ");
+            printf(" [2] CRONOMETRO    ");
         }
 
         if (current_tab == TAB_TIMER) {
-            printf("\x1b[47m\x1b[30m  [3] TEMPORIZADOR  \x1b[0m");
+            printf("\x1b[47m\x1b[30m [3] TEMPORIZADOR \x1b[0m\n\n");
         } else {
-            printf("  [3] TEMPORIZADOR  ");
+            printf(" [3] TEMPORIZADOR\n\n");
         }
-        printf("\n\n");
+
         printf("--------------------------------------------------------------------------------\n\n");
 
-        // --- CONTENIDO SEGÚN PESTAÑA ---
-
+        // --- Contenido según la pestaña activa ---
         if (current_tab == TAB_CLOCK) {
-            time_t rawtime = time(NULL);
-            struct tm *timeinfo = localtime(&rawtime);
+            time_t unix_time = time(NULL);
+            struct tm *time_info = localtime(&unix_time);
 
-            char date_str[64];
             char time_str[64];
-            strftime(date_str, sizeof(date_str), "%A, %d de %B de %Y", timeinfo);
-            strftime(time_str, sizeof(time_str), "%H:%M:%S", timeinfo);
+            char date_str[64];
+            strftime(time_str, sizeof(time_str), "%H:%M:%S", time_info);
+            strftime(date_str, sizeof(date_str), "%A, %d de %B de %Y", time_info);
 
-            printf("  \x1b[33m+------------------------------------------------------------------+\x1b[0m\n");
-            printf("  \x1b[33m|                                                                  |\x1b[0m\n");
-            printf("  \x1b[33m|\x1b[0m              HORA ACTUAL DEL SISTEMA (RTC)                      \x1b[33m|\x1b[0m\n");
-            printf("  \x1b[33m|                                                                  |\x1b[0m\n");
-            printf("  \x1b[33m|\x1b[0m                 \x1b[1m\x1b[32m  %s  \x1b[0m                          \x1b[33m|\x1b[0m\n", time_str);
-            printf("  \x1b[33m|                                                                  |\x1b[0m\n");
-            printf("  \x1b[33m|\x1b[0m               %s                               \x1b[33m|\x1b[0m\n", date_str);
-            printf("  \x1b[33m|                                                                  |\x1b[0m\n");
-            printf("  \x1b[33m+------------------------------------------------------------------+\x1b[0m\n\n");
-            printf("  Muestra la fecha y hora sintonizada con el chip RTC de tu consola.\n\n");
+            printf("  \x1b[33mCONTENIDO: RELOJ EN TIEMPO REAL\x1b[0m\n\n");
+            printf("  Hora Actual:  \x1b[1m\x1b[32m%s\x1b[0m\n", time_str);
+            printf("  Fecha:        %s\n\n", date_str);
+            printf("  * El reloj utiliza el tiempo real (RTC) de la consola Nintendo Switch.\n\n");
 
         } else if (current_tab == TAB_STOPWATCH) {
-            u32 total_sec = (u32)(sw_accumulated_ms / 1000);
-            u32 min = total_sec / 60;
-            u32 sec = total_sec % 60;
-            u32 ms = (u32)(sw_accumulated_ms % 1000) / 10; // Céntimas de segundo
+            u64 total_sec = sw_accumulated_ms / 1000;
+            u64 min = total_sec / 60;
+            u64 sec = total_sec % 60;
+            u64 ms = sw_accumulated_ms % 1000;
 
-            printf("  \x1b[35m+------------------------------------------------------------------+\x1b[0m\n");
-            printf("  \x1b[35m|                                                                  |\x1b[0m\n");
-            printf("  \x1b[35m|\x1b[0m                       CRONOMETRO                                 \x1b[35m|\x1b[0m\n");
-            printf("  \x1b[35m|                                                                  |\x1b[0m\n");
-            printf("  \x1b[35m|\x1b[0m                 \x1b[1m\x1b[33m    %02u:%02u.%02u    \x1b[0m                             \x1b[35m|\x1b[0m\n", min, sec, ms);
-            printf("  \x1b[35m|                                                                  |\x1b[0m\n");
-            printf("  \x1b[35m|\x1b[0m              ESTADO: %-42s \x1b[35m|\x1b[0m\n", sw_running ? "\x1b[32m[ CORRIENDO ]\x1b[0m" : "\x1b[31m[ PAUSADO ]\x1b[0m");
-            printf("  \x1b[35m|                                                                  |\x1b[0m\n");
-            printf("  \x1b[35m+------------------------------------------------------------------+\x1b[0m\n\n");
+            printf("  \x1b[33mCONTENIDO: CRONOMETRO\x1b[0m\n\n");
+            printf("  Tiempo Transcurrido: \x1b[1m\x1b[32m%02lu:%02lu.%03lu\x1b[0m\n\n", min, sec, ms);
+            printf("  Estado: %s\n\n", sw_running ? "\x1b[32m[CORRIENDO]\x1b[0m" : "\x1b[33m[PAUSADO]\x1b[0m");
+            printf("  Controles Cronómetro:\n");
+            printf("    - \x1b[1mA\x1b[0m: Iniciar / Pausar\n");
+            printf("    - \x1b[1mX\x1b[0m: Reiniciar a 00:00.000\n\n");
 
         } else if (current_tab == TAB_TIMER) {
-            u32 total_sec = (u32)(timer_remaining_ms / 1000);
-            u32 min = total_sec / 60;
-            u32 sec = total_sec % 60;
+            u64 total_sec = timer_remaining_ms / 1000;
+            u64 min = total_sec / 60;
+            u64 sec = total_sec % 60;
 
-            printf("  \x1b[34m+------------------------------------------------------------------+\x1b[0m\n");
-            printf("  \x1b[34m|                                                                  |\x1b[0m\n");
-            printf("  \x1b[34m|\x1b[0m                       TEMPORIZADOR                                \x1b[34m|\x1b[0m\n");
-            printf("  \x1b[34m|                                                                  |\x1b[0m\n");
-            printf("  \x1b[34m|\x1b[0m                 \x1b[1m\x1b[36m      %02u:%02u      \x1b[0m                             \x1b[34m|\x1b[0m\n", min, sec);
-            printf("  \x1b[34m|                                                                  |\x1b[0m\n");
+            printf("  \x1b[33mCONTENIDO: TEMPORIZADOR DE CUENTA REGRESIVA\x1b[0m\n\n");
             if (timer_finished) {
-                printf("  \x1b[34m|\x1b[0m           \x1b[5m\x1b[41m\x1b[37m  ¡ TIEMPO FINALIZADO !  \x1b[0m                         \x1b[34m|\x1b[0m\n");
+                printf("  Tiempo Restante: \x1b[1m\x1b[31m00:00 (¡TIEMPO AGOTADO!)\x1b[0m\n\n");
             } else {
-                printf("  \x1b[34m|\x1b[0m              ESTADO: %-42s \x1b[34m|\x1b[0m\n", timer_running ? "\x1b[32m[ CONTANDO ]\x1b[0m" : "\x1b[31m[ PAUSADO ]\x1b[0m");
+                printf("  Tiempo Restante: \x1b[1m\x1b[32m%02lu:%02lu\x1b[0m\n\n", min, sec);
             }
-            printf("  \x1b[34m|                                                                  |\x1b[0m\n");
-            printf("  \x1b[34m+------------------------------------------------------------------+\x1b[0m\n\n");
+
+            printf("  Estado: %s\n\n", timer_running ? "\x1b[32m[EN CURSO]\x1b[0m" : (timer_finished ? "\x1b[31m[FINALIZADO]\x1b[0m" : "\x1b[33m[PAUSADO / CONFIGURACION]\x1b[0m"));
+            printf("  Controles Temporizador:\n");
+            printf("    - \x1b[1mA\x1b[0m: Iniciar / Pausar\n");
+            printf("    - \x1b[1mX\x1b[0m: Reiniciar tiempo\n");
+            printf("    - \x1b[1mD-Pad Arriba / Abajo\x1b[0m: +/- 1 Minuto (en pausa)\n");
+            printf("    - \x1b[1mY\x1b[0m: +10 Segundos (en pausa)\n\n");
         }
 
-        // --- BARRA INFERIOR DE CONTROLES ---
-        printf("--------------------------------------------------------------------------------\n");
-        printf(" CONTROLES:\n");
-        printf("  [L / R / D-Pad] : Cambiar Pestana\n");
+        // Pie de página de controles globales
+        printf("\x1b[36m--------------------------------------------------------------------------------\x1b[0m\n");
+        printf(" Controles Globales: \x1b[1mL / R\x1b[0m o \x1b[1mD-Pad Izq/Der\x1b[0m: Cambiar Pestaña | \x1b[1m(+)\x1b[0m: Salir\n");
+        printf("\x1b[36m================================================================================\x1b[0m\n");
 
-        if (current_tab == TAB_STOPWATCH) {
-            printf("  [A]             : %s Cronometro\n", sw_running ? "Pausar" : "Iniciar");
-            printf("  [X]             : Reiniciar Cronometro\n");
-        } else if (current_tab == TAB_TIMER) {
-            printf("  [A]             : %s Temporizador\n", timer_running ? "Pausar" : "Iniciar");
-            printf("  [X]             : Reiniciar Temporizador\n");
-            if (!timer_running) {
-                printf("  [D-Pad Arriba/Abajo] : +/- 1 Minuto | [Y] : +10 Segundos\n");
-            }
-        }
-        printf("  [(+) PLUS]      : Salir a hbmenu\n");
-        printf("--------------------------------------------------------------------------------\n");
-
-        // Sincronizar actualización a refresco de pantalla
         consoleUpdate(NULL);
     }
 
-    // Salida limpia liberando pantalla y recursos de libnx
+    // Salir limpiando la consola
+    clear_screen();
     consoleExit(NULL);
     return 0;
 }
